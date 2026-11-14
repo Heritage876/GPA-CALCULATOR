@@ -1,0 +1,803 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f3f6fb">
+  <title>UCC GPA &amp; CGPA Calculator</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #17253a;
+      --muted: #66758a;
+      --line: #e1e8f1;
+      --paper: #ffffff;
+      --canvas: #f3f6fb;
+      --blue: #2459a6;
+      --blue-dark: #193f78;
+      --blue-pale: #e8f0fc;
+      --red: #b5473c;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      background: var(--canvas);
+      color: var(--ink);
+      min-width: 320px;
+    }
+
+    button, input { font: inherit; }
+    button { cursor: pointer; }
+
+    .page {
+      width: min(1120px, calc(100% - 40px));
+      margin: 0 auto;
+      padding: 34px 0 56px;
+    }
+
+    .topline {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: var(--blue);
+      font-size: 12px;
+      font-weight: 750;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+    }
+
+    .crest {
+      display: grid;
+      width: 34px;
+      height: 34px;
+      place-items: center;
+      border: 1px solid #cbd9ed;
+      border-radius: 10px;
+      background: var(--blue-pale);
+      color: var(--blue-dark);
+      font-size: 14px;
+      letter-spacing: 0;
+    }
+
+    .hero {
+      display: flex;
+      align-items: end;
+      justify-content: space-between;
+      gap: 24px;
+      margin: 26px 0 24px;
+    }
+
+    h1 {
+      margin: 0;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-size: clamp(36px, 5vw, 56px);
+      font-weight: 500;
+      letter-spacing: -.045em;
+      line-height: 1.04;
+    }
+
+    .hero p {
+      max-width: 600px;
+      margin: 13px 0 0;
+      color: var(--muted);
+      font-size: 15px;
+      line-height: 1.6;
+    }
+
+    .standard-tag {
+      flex: 0 0 auto;
+      padding: 9px 13px;
+      border: 1px solid #dfe6f0;
+      border-radius: 999px;
+      background: #fff;
+      color: #53625a;
+      font-size: 12px;
+      font-weight: 650;
+    }
+
+    .summary {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 14px;
+      margin-bottom: 27px;
+    }
+
+    .metric {
+      position: relative;
+      overflow: hidden;
+      min-height: 133px;
+      padding: 20px 22px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: var(--paper);
+    }
+
+    .metric.primary {
+      border-color: var(--blue);
+      background: var(--blue);
+      color: #fff;
+    }
+
+    .metric.primary::after {
+      position: absolute;
+      right: -24px;
+      bottom: -72px;
+      width: 170px;
+      height: 170px;
+      border: 1px solid rgb(255 255 255 / 15%);
+      border-radius: 50%;
+      box-shadow: 0 0 0 19px rgb(255 255 255 / 5%), 0 0 0 39px rgb(255 255 255 / 4%);
+      content: "";
+    }
+
+    .metric-label {
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 650;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+    }
+
+    .primary .metric-label { color: #d4e9dd; }
+
+    .metric-value {
+      display: block;
+      margin-top: 11px;
+      font-family: inherit;
+      font-size: 40px;
+      letter-spacing: -.04em;
+      line-height: 1;
+    }
+
+    .metric-note {
+      display: block;
+      margin-top: 8px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .primary .metric-note { color: #d4e9dd; }
+
+    .workspace {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 300px;
+      align-items: start;
+      gap: 20px;
+    }
+
+    .section-heading {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      margin: 0 0 12px;
+    }
+
+    h2 {
+      margin: 0;
+      font-family: inherit;
+      font-size: 23px;
+      font-weight: 500;
+      letter-spacing: -.02em;
+    }
+
+    .button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+      min-height: 38px;
+      padding: 0 13px;
+      border: 1px solid #dce5f0;
+      border-radius: 9px;
+      background: #fff;
+      color: var(--blue-dark);
+      font-size: 12px;
+      font-weight: 700;
+      transition: background .15s, border-color .15s, transform .15s;
+    }
+
+    .button:hover { border-color: #a9bfdf; background: #f3f7fd; }
+    .button:active { transform: translateY(1px); }
+    .button:focus-visible, input:focus-visible, select:focus-visible { outline: 3px solid #a6c1ed; outline-offset: 2px; }
+
+    .term-list { display: grid; gap: 13px; }
+
+    .term-card {
+      overflow: hidden;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: var(--paper);
+    }
+
+    .term-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      padding: 15px 18px;
+      border-bottom: 1px solid #edf1f7;
+    }
+
+    .term-title-wrap {
+      display: flex;
+      align-items: center;
+      gap: 11px;
+      min-width: 0;
+    }
+
+    .term-index {
+      display: grid;
+      flex: 0 0 29px;
+      width: 29px;
+      height: 29px;
+      place-items: center;
+      border-radius: 9px;
+      background: var(--blue-pale);
+      color: var(--blue);
+      font-size: 12px;
+      font-weight: 750;
+    }
+
+    .term-name {
+      width: min(245px, 100%);
+      min-width: 0;
+      padding: 3px 0;
+      border: 0;
+      background: transparent;
+      color: var(--ink);
+      font-size: 15px;
+      font-weight: 700;
+    }
+
+    .term-gpa {
+      flex: 0 0 auto;
+      color: var(--muted);
+      font-size: 12px;
+      white-space: nowrap;
+    }
+
+    .term-gpa strong {
+      margin-left: 5px;
+      color: var(--blue-dark);
+      font-size: 16px;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .icon-button {
+      width: 31px;
+      height: 31px;
+      border: 0;
+      border-radius: 8px;
+      background: transparent;
+      color: #85918a;
+      font-size: 18px;
+    }
+
+    .icon-button:hover { background: #fff0ef; color: var(--red); }
+
+    .course-head, .course-row {
+      display: grid;
+      grid-template-columns: minmax(130px, 1fr) 82px 100px 72px 28px;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .course-head {
+      padding: 11px 18px 7px;
+      color: #87918b;
+      font-size: 10px;
+      font-weight: 750;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+    }
+
+    .course-head span:nth-child(2), .course-head span:nth-child(3),
+    .course-head span:nth-child(4) { text-align: center; }
+
+    .courses { padding: 0 18px; }
+
+    .course-row {
+      min-height: 58px;
+      border-top: 1px solid #f0f2ef;
+    }
+
+    .course-input {
+      width: 100%;
+      min-width: 0;
+      height: 36px;
+      padding: 0 10px;
+      border: 1px solid #dfe6f0;
+      border-radius: 8px;
+      background: #fff;
+      color: var(--ink);
+      font-size: 13px;
+    }
+
+    .course-input::placeholder { color: #98a6b8; }
+    .course-input[type="number"] { text-align: center; font-variant-numeric: tabular-nums; }
+    .course-input:invalid { border-color: #db938c; }
+    .course-select { appearance: auto; }
+    .custom-course { margin-top: 5px; }
+
+    .grade-cell {
+      color: #a0aaa3;
+      font-size: 12px;
+      text-align: center;
+    }
+
+    .grade-cell strong {
+      display: block;
+      color: var(--blue);
+      font-size: 13px;
+    }
+
+    .grade-cell small { display: block; margin-top: 2px; color: #7d8981; font-size: 10px; }
+
+    .remove-course {
+      width: 28px;
+      height: 28px;
+      border: 0;
+      border-radius: 7px;
+      background: transparent;
+      color: #929d95;
+      font-size: 17px;
+    }
+
+    .remove-course:hover { background: #fff0ef; color: var(--red); }
+
+    .term-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 12px 18px 15px;
+    }
+
+    .add-course {
+      min-height: 32px;
+      padding: 0 10px;
+      border-style: dashed;
+      background: #fbfcfa;
+      color: #5d7064;
+      font-size: 11px;
+    }
+
+    .term-credits {
+      color: var(--muted);
+      font-size: 11px;
+      white-space: nowrap;
+    }
+
+    .side-card {
+      padding: 19px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: var(--paper);
+    }
+
+    .side-card + .side-card { margin-top: 13px; }
+
+    .side-card h3 {
+      margin: 0 0 13px;
+      font-size: 13px;
+      font-weight: 750;
+    }
+
+    .scale-list { display: grid; gap: 0; }
+
+    .scale-row {
+      display: grid;
+      grid-template-columns: 39px 1fr 35px;
+      align-items: center;
+      min-height: 31px;
+      border-top: 1px solid #f0f2ef;
+      color: #59665f;
+      font-size: 11px;
+    }
+
+    .scale-row:first-child { border-top: 0; }
+    .scale-grade { color: var(--blue-dark); font-weight: 750; }
+    .scale-points { text-align: right; font-variant-numeric: tabular-nums; }
+
+    .formula {
+      margin: 0;
+      padding: 11px 12px;
+      border-radius: 9px;
+      background: #f1f5fb;
+      color: #48574e;
+      font-size: 11px;
+      line-height: 1.6;
+    }
+
+    .disclaimer {
+      margin: 11px 0 0;
+      color: #7a867f;
+      font-size: 10px;
+      line-height: 1.5;
+    }
+
+    .empty-note {
+      display: none;
+      margin: 12px 0 0;
+      color: var(--red);
+      font-size: 11px;
+    }
+
+    @media (max-width: 800px) {
+      .workspace { grid-template-columns: 1fr; }
+      .reference { display: grid; grid-template-columns: 1fr 1fr; gap: 13px; }
+      .side-card + .side-card { margin-top: 0; }
+    }
+
+    @media (max-width: 600px) {
+      .page { width: min(100% - 24px, 520px); padding-top: 20px; }
+      .hero { display: block; margin-top: 22px; }
+      .standard-tag { display: inline-flex; margin-top: 15px; }
+      .summary { grid-template-columns: repeat(2, 1fr); gap: 9px; }
+      .metric { min-height: 112px; padding: 15px; }
+      .metric.primary { grid-column: 1 / -1; min-height: 124px; }
+      .metric-value { font-size: 34px; }
+      .section-heading { align-items: flex-start; }
+      .course-head, .course-row {
+        grid-template-columns: minmax(90px, 1fr) 57px 66px 45px 22px;
+        gap: 5px;
+      }
+      .course-head { padding-right: 10px; padding-left: 10px; font-size: 8px; }
+      .courses { padding: 0 10px; }
+      .course-row { min-height: 55px; }
+      .course-input { height: 34px; padding: 0 4px; font-size: 10px; }
+      .term-header { padding: 12px 11px; gap: 8px; }
+      .term-title-wrap { gap: 7px; }
+      .term-name { width: 145px; font-size: 12px; }
+      .term-gpa { font-size: 10px; }
+      .term-gpa strong { font-size: 14px; }
+      .term-footer { padding-right: 11px; padding-left: 11px; }
+      .reference { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <div class="topline">
+      <span class="crest" aria-hidden="true">UCC</span>
+      <span>University of Cape Coast</span>
+    </div>
+
+    <header class="hero">
+      <div>
+        <h1>Your GPA, clearly.</h1>
+        <p>Calculate your semester GPA and cumulative CGPA using course credits and the UCC grading scale. Add each semester to see your running results.</p>
+      </div>
+      <span class="standard-tag">4.0 grading scale</span>
+    </header>
+
+    <section class="summary" aria-label="Grade summary" aria-live="polite">
+      <article class="metric primary">
+        <span class="metric-label">Cumulative CGPA</span>
+        <strong class="metric-value" id="cgpa-value">—</strong>
+        <span class="metric-note" id="cgpa-note">Enter course scores and credits</span>
+      </article>
+      <article class="metric">
+        <span class="metric-label">Credits counted</span>
+        <strong class="metric-value" id="credit-value">0</strong>
+        <span class="metric-note">Across all semesters</span>
+      </article>
+      <article class="metric">
+        <span class="metric-label">Courses graded</span>
+        <strong class="metric-value" id="course-value">0</strong>
+        <span class="metric-note">With a valid score and credit</span>
+      </article>
+    </section>
+
+    <div class="workspace">
+      <section aria-labelledby="semesters-heading">
+        <div class="section-heading">
+          <h2 id="semesters-heading">Your semesters</h2>
+          <button class="button" id="add-semester" type="button"><span aria-hidden="true">＋</span> Add semester</button>
+        </div>
+        <div class="term-list" id="term-list"></div>
+      </section>
+
+      <aside class="reference" aria-label="Grading reference and formula">
+        <section class="side-card">
+          <h3>UCC grade-point scale</h3>
+          <div class="scale-list">
+            <div class="scale-row"><span class="scale-grade">A</span><span>80–100</span><span class="scale-points">4.0</span></div>
+            <div class="scale-row"><span class="scale-grade">B+</span><span>75–79</span><span class="scale-points">3.5</span></div>
+            <div class="scale-row"><span class="scale-grade">B</span><span>70–74</span><span class="scale-points">3.0</span></div>
+            <div class="scale-row"><span class="scale-grade">C+</span><span>65–69</span><span class="scale-points">2.5</span></div>
+            <div class="scale-row"><span class="scale-grade">C</span><span>60–64</span><span class="scale-points">2.0</span></div>
+            <div class="scale-row"><span class="scale-grade">D+</span><span>55–59</span><span class="scale-points">1.5</span></div>
+            <div class="scale-row"><span class="scale-grade">D</span><span>50–54</span><span class="scale-points">1.0</span></div>
+            <div class="scale-row"><span class="scale-grade">E</span><span>0–49 · Resit</span><span class="scale-points">0.0</span></div>
+          </div>
+          <p class="disclaimer">Confirm the grading scale and course-credit rules with your current UCC academic handbook. The supplied “STA 102 – Further Statistics” repeats the code for Introduction to Statistics; confirm its correct code with your department.</p>
+        </section>
+
+        <section class="side-card">
+          <h3>How it is calculated</h3>
+          <p class="formula"><strong>GPA / CGPA</strong><br>Σ (grade point × course credits) ÷ Σ course credits</p>
+          <p class="disclaimer">CGPA combines all graded courses from every semester listed. Courses without a score or valid credit are not included.</p>
+        </section>
+      </aside>
+    </div>
+  </main>
+
+  <template id="term-template">
+    <section class="term-card">
+      <header class="term-header">
+        <div class="term-title-wrap">
+          <span class="term-index" aria-hidden="true"></span>
+          <input class="term-name" type="text" aria-label="Semester name" maxlength="40">
+        </div>
+        <div class="term-gpa">Semester GPA <strong>—</strong></div>
+        <button class="icon-button remove-term" type="button" aria-label="Remove semester" title="Remove semester">×</button>
+      </header>
+      <div class="course-head" aria-hidden="true">
+        <span>Course</span><span>Credits</span><span>Score / 100</span><span>Grade</span><span></span>
+      </div>
+      <div class="courses"></div>
+      <footer class="term-footer">
+        <button class="button add-course" type="button"><span aria-hidden="true">＋</span> Add course</button>
+        <span class="term-credits">0 credits counted</span>
+      </footer>
+    </section>
+  </template>
+
+  <template id="course-template">
+    <div class="course-row">
+      <div class="course-name-wrap">
+        <select class="course-input course-select" aria-label="Select a course">
+          <option value="">Select a course</option>
+        </select>
+        <input class="course-input custom-course" type="text" maxlength="80" placeholder="Enter course name" aria-label="Custom course name" hidden>
+      </div>
+      <input class="course-input course-credit" type="number" min="0.5" step="any" placeholder="e.g. 3" aria-label="Course credits">
+      <input class="course-input course-score" type="number" min="0" max="100" step="any" placeholder="0–100" aria-label="Score out of 100">
+      <span class="grade-cell" aria-label="Grade and grade points">—</span>
+      <button class="remove-course" type="button" aria-label="Remove course" title="Remove course">×</button>
+    </div>
+  </template>
+
+  <script>
+    (() => {
+      const gradeScale = [
+        { min: 80, grade: "A", points: 4.0 },
+        { min: 75, grade: "B+", points: 3.5 },
+        { min: 70, grade: "B", points: 3.0 },
+        { min: 65, grade: "C+", points: 2.5 },
+        { min: 60, grade: "C", points: 2.0 },
+        { min: 55, grade: "D+", points: 1.5 },
+        { min: 50, grade: "D", points: 1.0 },
+        { min: 0, grade: "E", points: 0.0 }
+      ];
+
+      const catalog = [
+        {
+          group: "LEVEL 100 — First Semester",
+          courses: [
+            ["MAT 101", "Algebra & Trigonometry"],
+            ["STA 101", "Introduction to Probability"]
+          ]
+        },
+        {
+          group: "LEVEL 100 — Second Semester",
+          courses: [
+            ["MAT 102", "Analytic Geometry & Calculus"],
+            ["STA 102", "Introduction to Statistics"]
+          ]
+        },
+        {
+          group: "LEVEL 200 — First Semester",
+          courses: [
+            ["MAT 203", "Further Calculus"],
+            ["MAT 201", "Introduction to Abstract Algebra"],
+            ["STA 203", "Further Probability"]
+          ]
+        },
+        {
+          group: "LEVEL 200 — Second Semester",
+          courses: [
+            ["MAT 206", "Complex Numbers & Matrix Algebra"],
+            ["MAT 202", "Vector Algebra & Differential Equation"],
+            ["STA 102", "Further Statistics"]
+          ]
+        },
+        {
+          group: "LEVEL 300 — First Semester",
+          courses: [
+            ["MAT 301", "Advanced Calculus I"],
+            ["MAT 303", "Introductory Analysis"],
+            ["MAT 321", "Linear Algebra I"],
+            ["MAT 323", "Abstract Algebra I"],
+            ["STA 399", "Research Methods"]
+          ]
+        },
+        {
+          group: "LEVEL 300 — Second Semester",
+          courses: [
+            ["MAT 302", "Advanced Calculus II"],
+            ["MAT 322", "Linear Algebra II"],
+            ["MAT 324", "Abstract Algebra II"]
+          ]
+        },
+        {
+          group: "LEVEL 400 — First Semester",
+          courses: [
+            ["MAT 401", "Real Analysis"],
+            ["MAT 405", "Ordinary Differential Equations"],
+            ["MAT 407", "Numerical Analysis I"],
+            ["MAT 409", "Operations Research"],
+            ["MAT 421", "Introduction to Mathematical Modelling"]
+          ]
+        },
+        {
+          group: "LEVEL 400 — Second Semester",
+          courses: [
+            ["MAT 404", "Complex Analysis"],
+            ["MAT 406", "Partial Differential Equations"],
+            ["MAT 408", "Numerical Analysis II"],
+            ["MAT 402", "Functional Analysis"]
+          ]
+        }
+      ];
+
+      const semesterNames = catalog.map((semester) => semester.group.replace(" — ", " · "));
+      const termList = document.querySelector("#term-list");
+      const termTemplate = document.querySelector("#term-template");
+      const courseTemplate = document.querySelector("#course-template");
+      let nextTermNumber = 1;
+
+      function populateCourseSelect(select) {
+        catalog.forEach((semester) => {
+          const group = document.createElement("optgroup");
+          group.label = semester.group;
+          semester.courses.forEach(([code, title]) => {
+            const option = document.createElement("option");
+            option.value = `${code} – ${title}`;
+            option.textContent = option.value;
+            group.append(option);
+          });
+          select.append(group);
+        });
+
+        const customOption = document.createElement("option");
+        customOption.value = "custom";
+        customOption.textContent = "Other course…";
+        select.append(customOption);
+      }
+
+      function getGrade(score) {
+        return gradeScale.find((band) => score >= band.min);
+      }
+
+      function addCourse(term) {
+        const row = courseTemplate.content.firstElementChild.cloneNode(true);
+        populateCourseSelect(row.querySelector(".course-select"));
+        row.querySelector(".course-credit").value = "3";
+        term.querySelector(".courses").append(row);
+        row.querySelector(".course-select").focus();
+        updateAll();
+      }
+
+      function addTerm(name) {
+        const term = termTemplate.content.firstElementChild.cloneNode(true);
+        const number = nextTermNumber++;
+        term.querySelector(".term-index").textContent = number;
+        term.querySelector(".term-name").value = name || semesterNames[number - 1] || `Semester ${number}`;
+        term.querySelector(".add-course").addEventListener("click", () => addCourse(term));
+        term.querySelector(".remove-term").addEventListener("click", () => {
+          if (termList.children.length === 1) return;
+          term.remove();
+          updateAll();
+        });
+        termList.append(term);
+        addCourse(term);
+      }
+
+      function summarizeTerm(term) {
+        let weightedPoints = 0;
+        let credits = 0;
+        let courses = 0;
+
+        term.querySelectorAll(".course-row").forEach((row) => {
+          const creditInput = row.querySelector(".course-credit");
+          const scoreInput = row.querySelector(".course-score");
+          const gradeCell = row.querySelector(".grade-cell");
+          const score = scoreInput.value === "" ? NaN : Number(scoreInput.value);
+          const courseCredits = creditInput.value === "" ? NaN : Number(creditInput.value);
+
+          gradeCell.replaceChildren();
+          if (scoreInput.value === "") {
+            gradeCell.textContent = "—";
+            return;
+          }
+          if (!Number.isFinite(score) || score < 0 || score > 100) {
+            gradeCell.textContent = "Invalid";
+            return;
+          }
+          const band = getGrade(score);
+          const label = document.createElement("strong");
+          label.textContent = band.grade;
+          const points = document.createElement("small");
+          points.textContent = `${band.points.toFixed(1)} pts`;
+          gradeCell.append(label, points);
+          if (band.grade === "E") {
+            const resit = document.createElement("small");
+            resit.textContent = "Resit";
+            gradeCell.append(resit);
+          }
+
+          if (!Number.isFinite(courseCredits) || courseCredits <= 0) return;
+          weightedPoints += band.points * courseCredits;
+          credits += courseCredits;
+          courses += 1;
+        });
+
+        const gpa = credits > 0 ? weightedPoints / credits : null;
+        term.querySelector(".term-gpa strong").textContent = gpa === null ? "—" : gpa.toFixed(2);
+        term.querySelector(".term-credits").textContent = `${formatNumber(credits)} ${credits === 1 ? "credit" : "credits"} counted`;
+        return { weightedPoints, credits, courses };
+      }
+
+      function formatNumber(value) {
+        return Number.isInteger(value) ? String(value) : value.toFixed(1).replace(/\.0$/, "");
+      }
+
+      function updateAll() {
+        let weightedPoints = 0;
+        let credits = 0;
+        let courses = 0;
+
+        [...termList.children].forEach((term, index) => {
+          term.querySelector(".term-index").textContent = index + 1;
+          const result = summarizeTerm(term);
+          weightedPoints += result.weightedPoints;
+          credits += result.credits;
+          courses += result.courses;
+          term.querySelector(".remove-term").disabled = termList.children.length === 1;
+        });
+
+        const cgpa = credits > 0 ? weightedPoints / credits : null;
+        document.querySelector("#cgpa-value").textContent = cgpa === null ? "—" : cgpa.toFixed(2);
+        document.querySelector("#cgpa-note").textContent = cgpa === null
+          ? "Enter course scores and credits"
+          : `Out of 4.00 · ${termList.children.length} ${termList.children.length === 1 ? "semester" : "semesters"}`;
+        document.querySelector("#credit-value").textContent = formatNumber(credits);
+        document.querySelector("#course-value").textContent = courses;
+      }
+
+      document.querySelector("#add-semester").addEventListener("click", () => addTerm());
+      termList.addEventListener("input", updateAll);
+      termList.addEventListener("change", (event) => {
+        const select = event.target.closest(".course-select");
+        if (!select) return;
+        const customInput = select.closest(".course-name-wrap").querySelector(".custom-course");
+        const isCustom = select.value === "custom";
+        customInput.hidden = !isCustom;
+        customInput.required = isCustom;
+        if (isCustom) customInput.focus();
+        updateAll();
+      });
+      termList.addEventListener("click", (event) => {
+        const button = event.target.closest(".remove-course");
+        if (!button) return;
+        const courseRows = button.closest(".courses");
+        if (courseRows.children.length === 1) {
+          const row = button.closest(".course-row");
+          row.querySelectorAll("input").forEach((input) => { input.value = ""; });
+        } else {
+          button.closest(".course-row").remove();
+        }
+        updateAll();
+      });
+
+      addTerm(semesterNames[0]);
+    })();
+  </script>
+</body>
+</html>
